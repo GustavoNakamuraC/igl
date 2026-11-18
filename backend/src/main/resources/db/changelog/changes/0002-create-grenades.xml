@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="0002-create-grenades" author="igl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="grenades"/>
+            </not>
+        </preConditions>
+        <createTable tableName="grenades" remarks="Lineups de granadas: ponto de arremesso e ponto onde cai">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" primaryKeyName="pk_grenades"/>
+            </column>
+            <column name="map_slug" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_x" type="double precision">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_y" type="double precision">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_label" type="text"/>
+            <column name="end_x" type="double precision">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_y" type="double precision">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_label" type="text"/>
+            <column name="how_to" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamptz" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamptz" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="grenades" indexName="ix_grenades_map_slug">
+            <column name="map_slug"/>
+        </createIndex>
+        <rollback>
+            <dropTable tableName="grenades"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
