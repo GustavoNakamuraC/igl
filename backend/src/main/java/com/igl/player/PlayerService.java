@@ -75,6 +75,7 @@ public class PlayerService {
         if (input.photoId() != null) images.requireAllExist(List.of(input.photoId()));
         player.setName(input.name().trim());
         player.setRole(blankToNull(input.role()));
+        player.setSecondaryRole(blankToNull(input.secondaryRole()));
         player.setNotes(blankToNull(input.notes()));
         player.setColor(input.color());
         player.setPhotoId(input.photoId());

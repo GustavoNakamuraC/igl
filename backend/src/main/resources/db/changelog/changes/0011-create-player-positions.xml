@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Onde cada jogador fica em cada lado, apontando para uma região nomeada (o mapa vem da região). -->
+    <changeSet id="0011-create-player-positions" author="igl">
+        <createTable tableName="player_positions" remarks="Posições dos jogadores por região e lado">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" primaryKeyName="pk_player_positions"/>
+            </column>
+            <column name="player_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_player_positions_player"
+                             referencedTableName="players" referencedColumnNames="id" deleteCascade="true"/>
+            </column>
+            <column name="region_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_player_positions_region"
+                             referencedTableName="regions" referencedColumnNames="id" deleteCascade="true"/>
+            </column>
+            <column name="side" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamptz" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="player_positions" columnNames="player_id, region_id, side"
+                             constraintName="uq_player_positions"/>
+        <createIndex tableName="player_positions" indexName="ix_player_positions_region">
+            <column name="region_id"/>
+        </createIndex>
+        <sql>
+            alter table player_positions
+                add constraint ck_player_positions_side check (side in ('ct', 'tr'));
+            alter table player_positions enable row level security;
+        </sql>
+        <rollback>
+            <dropTable tableName="player_positions"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

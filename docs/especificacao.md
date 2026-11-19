@@ -1,4 +1,4 @@
-# IGL — Documentação do Projeto (v0.6)
+# IGL — Documentação do Projeto (v0.7)
 
 Aplicação web para apoiar o IGL (in-game leader) de um grupo de amigos no CS2: mapas interativos com áreas nomeadas e um catálogo de granadas (lineups).
 
@@ -85,7 +85,7 @@ Fluxo:
 
 ### 4.6 Jogadores
 - Página `/jogadores` (link na home e no topo do mapa).
-- Cadastro com **nome** (obrigatório), **função** (texto livre com sugestões: IGL, Entry, AWP, Suporte, Lurker…), **informações adicionais**, **cor** (azul, amarelo, verde, laranja, roxo) e **foto** opcional.
+- Cadastro com **nome** (obrigatório), **função principal** e **função secundária** (texto livre com sugestões: IGL, Entry, AWP, Suporte, Lurker…), **informações adicionais**, **cor** (azul, amarelo, verde, laranja, roxo) e **foto** opcional.
 - Sem jogadores: aviso "Nenhum jogador cadastrado" com botão para cadastrar.
 - Com jogadores: círculos na cor do jogador, com a foto (ou a inicial) e o nome. Clique abre o modal com as informações, quantas granadas sabe por mapa, **Editar** e **Excluir**.
 - Excluir um jogador remove só os vínculos dele; as granadas continuam.
@@ -95,6 +95,14 @@ Fluxo:
 - **Nenhum selecionado (padrão):** o mapa mostra todas as granadas.
 - **Com seleção:** o mapa mostra apenas granadas vinculadas a pelo menos um jogador da line (granadas sem jogador ficam escondidas). Combina com o filtro por tipo; os contadores dos chips refletem a line.
 - A line fica salva no navegador (`localStorage`), não no banco.
+
+### 4.9 Posições
+- Para cada mapa e lado (CT/TR), define em quais **regiões nomeadas** cada jogador fica. Uso principal: o setup de CT ("quem segura o A"); também serve para TR ("sempre vai A").
+- Um jogador pode ter várias posições no mesmo lado; a mesma combinação jogador + região + lado não se repete.
+- Botão **Posições** no mapa: painel lateral com abas CT/TR, cada jogador com as regiões dele (× remove, "+ adicionar" escolhe outra região). Com line selecionada, só aparecem os jogadores da line.
+- Com o painel aberto, os avatares aparecem sobre o centro de cada região; passar o mouse num jogador do painel destaca as regiões dele.
+- O modal do jogador lista as posições por mapa e lado.
+- Excluir uma região ou um jogador apaga as posições ligadas (a confirmação de exclusão da região avisa quantas).
 
 ### 4.8 Extras da granada
 - **Quem sabe fazer:** vínculo com vários jogadores.
@@ -138,6 +146,9 @@ players         (id uuid pk, name text, role text?, notes text?,
                  photo_id uuid? fk images, created_at, updated_at)
 player_grenades (player_id fk players cascade, grenade_id fk grenades cascade, created_at)  -- pk composta
 grenade_images  (grenade_id fk grenades cascade, image_id fk images cascade, position int)  -- pk (grenade_id, position)
+player_positions (id uuid pk, player_id fk players cascade, region_id fk regions cascade,
+                  side text check in ('ct','tr'), created_at)  -- unique (player_id, region_id, side)
+players         + secondary_role text?
 grenades        + notes text?
                 + side text not null default 'both' check in ('ct','tr','both')   -- 0009
 ```
@@ -154,10 +165,10 @@ grenades        + notes text?
 - **Rótulo automático:** se um ponto cai dentro de uma região nomeada, o nome da região é sugerido como valor padrão.
 - **Persistência:** backend Spring Boot (JPA) sobre o Postgres do Supabase. No front, a UI usa stores (Zustand) que chamam repositórios (`regionRepository`, `grenadeRepository`), que são os únicos a chamar a API (`/api/...`).
 - **Sem fallback local:** se o backend estiver fora do ar, o front mostra um aviso discreto com "Tentar de novo".
-- **API REST:** `GET/POST /api/maps/{slug}/regions`, `PUT/DELETE /api/regions/{id}`, `GET/POST /api/maps/{slug}/grenades`, `PUT/DELETE /api/grenades/{id}`, `GET/POST /api/players`, `PUT/DELETE /api/players/{id}`, `GET /api/players/{id}/grenade-counts`, `POST /api/images` (multipart), `GET /api/images/{id}`, `GET/POST /api/backup`, `GET /api/actuator/health`.
+- **API REST:** `GET/POST /api/maps/{slug}/regions`, `PUT/DELETE /api/regions/{id}`, `GET/POST /api/maps/{slug}/grenades`, `PUT/DELETE /api/grenades/{id}`, `GET/POST /api/players`, `PUT/DELETE /api/players/{id}`, `GET /api/players/{id}/grenade-counts`, `GET /api/maps/{slug}/positions`, `GET /api/players/{id}/positions`, `POST /api/positions`, `DELETE /api/positions/{id}`, `POST /api/images` (multipart), `GET /api/images/{id}`, `GET/POST /api/backup`, `GET /api/actuator/health`.
 - **Segurança (decisão consciente):** não há login; a API não tem autenticação e é pensada para rodar localmente. No Supabase, as tabelas ficam com RLS ligado **sem políticas**, então a API pública do Supabase (chave `anon`) não lê nem altera nada; só o backend, conectado como dono das tabelas, acessa os dados. Se um dia o site for hospedado, a evolução é adicionar um login simples no backend.
 - **Plano free do Supabase:** projetos sem atividade por cerca de uma semana são pausados e precisam ser reativados manualmente no painel. Não há perda de dados, mas o site fica fora do ar até lá.
-- **Backup:** botões de exportar/importar tudo em JSON. Versão 2 inclui jogadores, vínculos e imagens (em base64); a importação aceita arquivos v1 e v2 e substitui tudo.
+- **Backup:** botões de exportar/importar tudo em JSON. Versão 2 inclui jogadores, vínculos, imagens (em base64) e posições; a importação aceita arquivos v1 e v2 e substitui tudo.
 
 ## 7. Stack sugerida
 

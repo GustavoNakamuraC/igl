@@ -16,6 +16,11 @@ import { GrenadeFormModal } from '../grenades/GrenadeFormModal';
 import { GrenadeDetailsModal } from '../grenades/GrenadeDetailsModal';
 import { LineSelector } from '../line/LineSelector';
 import { matchesLine, useLineStore } from '../line/lineStore';
+import { usePlayerStore } from '../players/playerStore';
+import { usePositionStore } from '../positions/positionStore';
+import { PositionsPanel } from '../positions/PositionsPanel';
+import { PositionMarkers } from '../positions/PositionMarkers';
+import type { TeamSide } from '../../lib/types';
 
 type Mode =
   | { kind: 'view' }
@@ -43,6 +48,9 @@ export function MapPage() {
   const createGrenade = useGrenadeStore((s) => s.create);
   const updateGrenade = useGrenadeStore((s) => s.update);
   const line = useLineStore((s) => s.ids);
+  const players = usePlayerStore((s) => s.players);
+  const positions = usePositionStore((s) => s.positions);
+  const loadPositions = usePositionStore((s) => s.load);
 
   const [mode, setMode] = useState<Mode>({ kind: 'view' });
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -50,7 +58,10 @@ export function MapPage() {
   const [detailsIds, setDetailsIds] = useState<string[] | null>(null);
   const [editingGrenade, setEditingGrenade] = useState<Grenade | null>(null);
   const [renaming, setRenaming] = useState<Region | null>(null);
-  const [panelOpen, setPanelOpen] = useState(false);
+  /** Painel lateral aberto: regiões ou posições (um de cada vez). */
+  const [panel, setPanel] = useState<'regions' | 'positions' | null>(null);
+  const [positionSide, setPositionSide] = useState<TeamSide>('ct');
+  const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
   const [highlightedRegion, setHighlightedRegion] = useState<string | null>(null);
   const [savingShape, setSavingShape] = useState(false);
 
@@ -59,7 +70,20 @@ export function MapPage() {
     setMode({ kind: 'view' });
     void loadRegions(map.slug).catch(() => {});
     void loadGrenades(map.slug).catch(() => {});
-  }, [map, loadRegions, loadGrenades]);
+    void loadPositions(map.slug).catch(() => {});
+  }, [map, loadRegions, loadGrenades, loadPositions]);
+
+  // Posições respeitam a line: com line, só os jogadores dela.
+  const positionPlayers = useMemo(
+    () => (line.length === 0 ? players : players.filter((p) => line.includes(p.id))),
+    [players, line],
+  );
+  const highlightedRegions = useMemo(() => {
+    if (hoveredPlayer) {
+      return positions.filter((p) => p.playerId === hoveredPlayer && p.side === positionSide).map((p) => p.regionId);
+    }
+    return highlightedRegion ? [highlightedRegion] : [];
+  }, [hoveredPlayer, positions, positionSide, highlightedRegion]);
 
   // Filtros: line ∧ lado ∧ tipo. Cada contador considera a line e o outro filtro (não o próprio),
   // para mostrar quantas apareceriam ao ligar aquele chip.
@@ -179,7 +203,10 @@ export function MapPage() {
           >
             Nomear região
           </Button>
-          <Button active={panelOpen} onClick={() => setPanelOpen((v) => !v)}>
+          <Button active={panel === 'positions'} onClick={() => setPanel((p) => (p === 'positions' ? null : 'positions'))}>
+            Posições
+          </Button>
+          <Button active={panel === 'regions'} onClick={() => setPanel((p) => (p === 'regions' ? null : 'regions'))}>
             Regiões
           </Button>
         </div>
@@ -202,7 +229,7 @@ export function MapPage() {
             onPointerMoveMap={crosshair ? setCursor : undefined}
             svgLayer={(px) => (
               <>
-                <RegionShapes regions={regions} highlightedId={highlightedRegion} hiddenId={editingRegionId} px={px} />
+                <RegionShapes regions={regions} highlightedIds={highlightedRegions} hiddenId={editingRegionId} px={px} />
                 {mode.kind === 'editRegion' && <DraftPolygon points={mode.points} cursor={null} closed px={px} />}
                 {mode.kind === 'drawRegion' && <DraftPolygon points={mode.points} cursor={cursor} closed={mode.closed} px={px} />}
                 {mode.kind === 'view' && <GrenadeLines grenades={linesFor} px={px} />}
@@ -222,6 +249,15 @@ export function MapPage() {
             htmlLayer={(scale) => (
               <>
                 {showLabels && <RegionLabels regions={regions} scale={scale} hiddenId={editingRegionId} />}
+                {panel === 'positions' && mode.kind === 'view' && (
+                  <PositionMarkers
+                    positions={positions}
+                    regions={regions}
+                    players={positionPlayers}
+                    side={positionSide}
+                    scale={scale}
+                  />
+                )}
                 <GrenadeMarkers
                   groups={groups}
                   scale={scale}
@@ -284,13 +320,28 @@ export function MapPage() {
           )}
         </main>
 
-        {panelOpen && (
+        {panel === 'positions' && (
+          <PositionsPanel
+            side={positionSide}
+            onSideChange={setPositionSide}
+            regions={regions}
+            players={positionPlayers}
+            filteredByLine={line.length > 0}
+            onHoverPlayer={setHoveredPlayer}
+            onClose={() => {
+              setPanel(null);
+              setHoveredPlayer(null);
+            }}
+          />
+        )}
+
+        {panel === 'regions' && (
           <RegionPanel
             highlightedId={highlightedRegion}
             onHighlight={setHighlightedRegion}
             onRename={setRenaming}
             onEditShape={(r) => setMode({ kind: 'editRegion', region: r, points: r.points })}
-            onClose={() => setPanelOpen(false)}
+            onClose={() => setPanel(null)}
           />
         )}
       </div>

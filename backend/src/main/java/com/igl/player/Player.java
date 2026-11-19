@@ -16,7 +16,12 @@ public class Player {
     @Column(nullable = false)
     private String name;
 
+    /** Função principal. */
     private String role;
+
+    /** Função secundária. */
+    @Column(name = "secondary_role")
+    private String secondaryRole;
 
     private String notes;
 
@@ -49,6 +54,8 @@ public class Player {
     public void setName(String name) { this.name = name; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public String getSecondaryRole() { return secondaryRole; }
+    public void setSecondaryRole(String secondaryRole) { this.secondaryRole = secondaryRole; }
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
     public PlayerColor getColor() { return color; }

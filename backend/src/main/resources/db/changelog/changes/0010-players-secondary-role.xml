@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- players.role passa a ser a função principal; esta é a secundária. -->
+    <changeSet id="0010-players-secondary-role" author="igl">
+        <addColumn tableName="players">
+            <column name="secondary_role" type="text" remarks="Função secundária"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="players" columnName="secondary_role"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

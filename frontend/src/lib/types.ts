@@ -81,7 +81,10 @@ export const playerColorVar = (c: PlayerColor) => `var(--color-player-${c})`;
 export interface Player {
   id: string;
   name: string;
+  /** Função principal. */
   role: string | null;
+  /** Função secundária. */
+  secondaryRole: string | null;
   notes: string | null;
   color: PlayerColor;
   photoId: string | null;
@@ -92,9 +95,28 @@ export interface Player {
 export interface PlayerInput {
   name: string;
   role: string | null;
+  secondaryRole: string | null;
   notes: string | null;
   color: PlayerColor;
   photoId: string | null;
+}
+
+/** Onde um jogador fica num lado, apontando para uma região nomeada do mapa. */
+export interface PlayerPosition {
+  id: string;
+  playerId: string;
+  regionId: string;
+  side: TeamSide;
+  createdAt: string;
+}
+
+/** Posição com mapa e nome da região (modal do jogador). */
+export interface PlayerPositionView {
+  id: string;
+  mapSlug: string;
+  regionId: string;
+  regionName: string;
+  side: TeamSide;
 }
 
 export interface BackupData {
@@ -104,4 +126,5 @@ export interface BackupData {
   grenades: Grenade[];
   players?: Player[];
   images?: { id: string; contentType: string; data: string }[];
+  positions?: PlayerPosition[];
 }
