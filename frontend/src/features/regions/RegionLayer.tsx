@@ -4,13 +4,21 @@ import { anchorStyle, NO_PAN } from '../maps/MapCanvas';
 
 const pointsAttr = (pts: Point[]) => pts.map((p) => `${p.x},${p.y}`).join(' ');
 
-export function RegionShapes({ regions, highlightedId, hiddenId, px }: { regions: Region[]; highlightedId: string | null; hiddenId?: string; px: number }) {
+interface ShapesProps {
+  regions: Region[];
+  /** Regiões em destaque (hover no painel de regiões ou de posições). */
+  highlightedIds: string[];
+  hiddenId?: string;
+  px: number;
+}
+
+export function RegionShapes({ regions, highlightedIds, hiddenId, px }: ShapesProps) {
   return (
     <g>
       {regions
         .filter((r) => r.id !== hiddenId)
         .map((r) => {
-          const hl = r.id === highlightedId;
+          const hl = highlightedIds.includes(r.id);
           return (
             <polygon
               key={r.id}

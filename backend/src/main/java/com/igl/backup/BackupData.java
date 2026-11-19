@@ -2,6 +2,7 @@ package com.igl.backup;
 
 import com.igl.grenade.GrenadeDtos.GrenadeResponse;
 import com.igl.player.PlayerDtos.PlayerResponse;
+import com.igl.position.PositionDtos.PositionResponse;
 import com.igl.region.RegionDtos.RegionResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +13,7 @@ import java.util.UUID;
 
 /**
  * Formato do arquivo de backup (exportar/importar tudo em JSON).
- * v1: regiões e granadas. v2: + jogadores, vínculos e imagens (base64).
+ * v1: regiões e granadas. v2: + jogadores, vínculos, imagens (base64) e, opcionalmente, posições.
  */
 public record BackupData(
         int version,
@@ -20,7 +21,8 @@ public record BackupData(
         @NotNull List<@Valid @NotNull RegionResponse> regions,
         @NotNull List<@Valid @NotNull GrenadeResponse> grenades,
         List<@Valid @NotNull PlayerResponse> players,
-        List<@Valid @NotNull ImageData> images) {
+        List<@Valid @NotNull ImageData> images,
+        List<@Valid @NotNull PositionResponse> positions) {
 
     public static final int CURRENT_VERSION = 2;
 
@@ -34,5 +36,9 @@ public record BackupData(
 
     public List<ImageData> imagesOrEmpty() {
         return images == null ? List.of() : images;
+    }
+
+    public List<PositionResponse> positionsOrEmpty() {
+        return positions == null ? List.of() : positions;
     }
 }

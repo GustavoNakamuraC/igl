@@ -4,7 +4,16 @@ import { Button } from '../../components/Button';
 import { ImagePicker, useImageUpload } from '../../components/ImagePicker';
 import { api, errorMessage } from '../../lib/api';
 import { PHOTO_MAX } from '../../lib/image';
-import { PLAYER_COLORS, playerColorVar, type Player, type PlayerColor } from '../../lib/types';
+import {
+  PLAYER_COLORS,
+  SIDE_LABELS,
+  TEAM_SIDES,
+  playerColorVar,
+  sideColorVar,
+  type Player,
+  type PlayerColor,
+  type PlayerPositionView,
+} from '../../lib/types';
 import { MAPS } from '../../data/maps';
 import { PlayerAvatar } from './PlayerAvatar';
 import { usePlayerStore } from './playerStore';
@@ -39,6 +48,7 @@ function PlayerView({ player, onEdit, onClose }: { player: Player; onEdit: () =>
   // O store tem a versão mais recente (após editar).
   const current = usePlayerStore((s) => s.players.find((p) => p.id === player.id)) ?? player;
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
+  const [positions, setPositions] = useState<PlayerPositionView[] | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +57,12 @@ function PlayerView({ player, onEdit, onClose }: { player: Player; onEdit: () =>
       .then(setCounts)
       .catch(() => setCounts({}));
   }, [player.id, current.updatedAt]);
+
+  useEffect(() => {
+    api<PlayerPositionView[]>(`/players/${player.id}/positions`)
+      .then(setPositions)
+      .catch(() => setPositions([]));
+  }, [player.id]);
 
   const total = counts ? Object.values(counts).reduce((a, b) => a + b, 0) : 0;
   const colorLabel = PLAYER_COLORS.find((c) => c.value === current.color)?.label;
@@ -96,6 +112,11 @@ function PlayerView({ player, onEdit, onClose }: { player: Player; onEdit: () =>
           {current.role ?? 'Sem função definida'}
           <span className="text-muted"> · {colorLabel}</span>
         </p>
+        {current.secondaryRole && (
+          <p className="mt-0.5 text-xs text-muted">
+            Função secundária: <span className="text-text">{current.secondaryRole}</span>
+          </p>
+        )}
       </div>
 
       {current.notes && (
@@ -123,8 +144,41 @@ function PlayerView({ player, onEdit, onClose }: { player: Player; onEdit: () =>
           </ul>
         )}
       </section>
+      <section className="mt-5">
+        <h4 className="mb-2 text-xs font-medium tracking-wide text-muted uppercase">Posições</h4>
+        <PositionsByMap positions={positions} />
+      </section>
       {error && <p className="mt-3 text-sm text-danger">{error}</p>}
     </Modal>
+  );
+}
+
+/** Posições do jogador agrupadas por mapa, uma linha por lado. */
+function PositionsByMap({ positions }: { positions: PlayerPositionView[] | null }) {
+  if (positions === null) return <p className="text-sm text-muted">Carregando…</p>;
+  if (positions.length === 0) {
+    return <p className="text-sm text-muted">Nenhuma posição definida. Defina na tela do mapa, em “Posições”.</p>;
+  }
+  return (
+    <ul className="space-y-2">
+      {MAPS.filter((m) => positions.some((p) => p.mapSlug === m.slug)).map((m) => (
+        <li key={m.slug} className="rounded-lg border border-border bg-bg-2 px-3 py-2 text-sm">
+          <div className="mb-1 font-semibold">{m.name}</div>
+          {TEAM_SIDES.map((side) => {
+            const names = positions.filter((p) => p.mapSlug === m.slug && p.side === side).map((p) => p.regionName);
+            if (names.length === 0) return null;
+            return (
+              <div key={side} className="flex gap-2">
+                <span className="w-7 shrink-0 font-bold" style={{ color: sideColorVar(side) }}>
+                  {SIDE_LABELS[side]}
+                </span>
+                <span>{names.join(', ')}</span>
+              </div>
+            );
+          })}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -133,6 +187,7 @@ function PlayerForm({ player, onCancel, onSaved }: { player: Player | null; onCa
   const update = usePlayerStore((s) => s.update);
   const [name, setName] = useState(player?.name ?? '');
   const [role, setRole] = useState(player?.role ?? '');
+  const [secondaryRole, setSecondaryRole] = useState(player?.secondaryRole ?? '');
   const [notes, setNotes] = useState(player?.notes ?? '');
   const [color, setColor] = useState<PlayerColor>(player?.color ?? 'blue');
   const [photoId, setPhotoId] = useState<string | null>(player?.photoId ?? null);
@@ -147,7 +202,14 @@ function PlayerForm({ player, onCancel, onSaved }: { player: Player | null; onCa
     if (!valid || saving) return;
     setSaving(true);
     setError(null);
-    const input = { name: name.trim(), role: role.trim() || null, notes: notes.trim() || null, color, photoId };
+    const input = {
+      name: name.trim(),
+      role: role.trim() || null,
+      secondaryRole: secondaryRole.trim() || null,
+      notes: notes.trim() || null,
+      color,
+      photoId,
+    };
     try {
       if (player) await update(player.id, input);
       else await create(input);
@@ -199,22 +261,35 @@ function PlayerForm({ player, onCancel, onSaved }: { player: Player | null; onCa
           <input className={inputClass} value={name} maxLength={40} placeholder="Nome ou apelido" onChange={(e) => setName(e.target.value)} />
         </label>
 
-        <label className="block">
-          <span className="mb-1 block text-xs font-medium tracking-wide text-muted uppercase">Função</span>
-          <input
-            className={inputClass}
-            value={role}
-            maxLength={40}
-            list="player-roles"
-            placeholder="Ex.: Entry, AWP, Suporte"
-            onChange={(e) => setRole(e.target.value)}
-          />
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium tracking-wide text-muted uppercase">Função principal</span>
+            <input
+              className={inputClass}
+              value={role}
+              maxLength={40}
+              list="player-roles"
+              placeholder="Ex.: Entry"
+              onChange={(e) => setRole(e.target.value)}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium tracking-wide text-muted uppercase">Função secundária</span>
+            <input
+              className={inputClass}
+              value={secondaryRole}
+              maxLength={40}
+              list="player-roles"
+              placeholder="Ex.: Suporte"
+              onChange={(e) => setSecondaryRole(e.target.value)}
+            />
+          </label>
           <datalist id="player-roles">
             {ROLE_SUGGESTIONS.map((r) => (
               <option key={r} value={r} />
             ))}
           </datalist>
-        </label>
+        </div>
 
         <fieldset>
           <legend className="mb-2 text-xs font-medium tracking-wide text-muted uppercase">Cor</legend>

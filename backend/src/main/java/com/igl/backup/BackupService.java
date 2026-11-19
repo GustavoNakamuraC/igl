@@ -5,11 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.igl.backup.BackupData.ImageData;
 import com.igl.grenade.GrenadeDtos.GrenadeResponse;
 import com.igl.grenade.GrenadeRepository;
+import com.igl.grenade.GrenadeSide;
 import com.igl.image.ImageRepository;
 import com.igl.common.BadRequestException;
 import com.igl.map.MapSlug;
 import com.igl.player.PlayerDtos.PlayerResponse;
 import com.igl.player.PlayerRepository;
+import com.igl.position.PositionDtos.PositionResponse;
+import com.igl.position.PositionRepository;
 import com.igl.region.RegionDtos.RegionResponse;
 import com.igl.region.RegionRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,15 +35,18 @@ public class BackupService {
     private final GrenadeRepository grenades;
     private final PlayerRepository players;
     private final ImageRepository images;
+    private final PositionRepository positions;
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
 
     public BackupService(RegionRepository regions, GrenadeRepository grenades, PlayerRepository players,
-                         ImageRepository images, JdbcTemplate jdbc, ObjectMapper json) {
+                         ImageRepository images, PositionRepository positions, JdbcTemplate jdbc,
+                         ObjectMapper json) {
         this.regions = regions;
         this.grenades = grenades;
         this.players = players;
         this.images = images;
+        this.positions = positions;
         this.jdbc = jdbc;
         this.json = json;
     }
@@ -55,7 +61,9 @@ public class BackupService {
                 .sorted(Comparator.comparing(com.igl.image.Image::getCreatedAt))
                 .map(img -> new ImageData(img.getId(), img.getContentType(), img.getData()))
                 .toList();
-        return new BackupData(BackupData.CURRENT_VERSION, Instant.now(), r, g, p, i);
+        List<PositionResponse> pos = positions.findAllByOrderByCreatedAtAsc().stream()
+                .map(PositionResponse::from).toList();
+        return new BackupData(BackupData.CURRENT_VERSION, Instant.now(), r, g, p, i, pos);
     }
 
     /** Substitui todos os dados pelos do backup. Tudo ou nada (transacional). Aceita v1 e v2. */
@@ -63,7 +71,7 @@ public class BackupService {
     public void importAll(BackupData data) {
         validate(data);
 
-        // Vínculos (player_grenades, grenade_images) caem em cascata.
+        // Vínculos (player_grenades, grenade_images, player_positions) caem em cascata.
         jdbc.update("delete from grenades");
         jdbc.update("delete from players");
         jdbc.update("delete from regions");
@@ -76,9 +84,10 @@ public class BackupService {
         }
         for (PlayerResponse p : data.playersOrEmpty()) {
             jdbc.update("""
-                            insert into players (id, name, role, notes, color, photo_id, created_at, updated_at)
-                            values (?, ?, ?, ?, ?, ?, ?, ?)""",
-                    p.id(), p.name(), p.role(), p.notes(), p.color().value(), p.photoId(),
+                            insert into players (id, name, role, secondary_role, notes, color, photo_id,
+                                                 created_at, updated_at)
+                            values (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    p.id(), p.name(), p.role(), p.secondaryRole(), p.notes(), p.color().value(), p.photoId(),
                     ts(p.createdAt(), now), ts(p.updatedAt(), now));
         }
         for (RegionResponse r : data.regions()) {
@@ -88,13 +97,21 @@ public class BackupService {
                     idOrNew(r.id()), r.mapSlug(), r.name(), toJson(r.points()),
                     ts(r.createdAt(), now), ts(r.updatedAt(), now));
         }
+        for (PositionResponse pos : data.positionsOrEmpty()) {
+            jdbc.update("""
+                            insert into player_positions (id, player_id, region_id, side, created_at)
+                            values (?, ?, ?, ?, ?)""",
+                    idOrNew(pos.id()), pos.playerId(), pos.regionId(), pos.side().value(), ts(pos.createdAt(), now));
+        }
         for (GrenadeResponse g : data.grenades()) {
             UUID id = idOrNew(g.id());
             jdbc.update("""
-                            insert into grenades (id, map_slug, type, start_x, start_y, start_label,
+                            insert into grenades (id, map_slug, type, side, start_x, start_y, start_label,
                                                   end_x, end_y, end_label, how_to, notes, created_at, updated_at)
-                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     id, g.mapSlug(), g.type().value(),
+                    // Backups anteriores ao lado CT/TR não têm o campo.
+                    (g.side() != null ? g.side() : GrenadeSide.BOTH).value(),
                     g.start().x(), g.start().y(), g.start().label(),
                     g.end().x(), g.end().y(), g.end().label(),
                     g.howTo(), g.notes(), ts(g.createdAt(), now), ts(g.updatedAt(), now));
@@ -122,6 +139,19 @@ public class BackupService {
             playerIds.add(p.id());
             if (p.photoId() != null && !imageIds.contains(p.photoId())) {
                 throw new InvalidBackupException("Foto do jogador " + p.name() + " não está no backup");
+            }
+        }
+        Set<UUID> regionIds = data.regions().stream().map(RegionResponse::id).collect(Collectors.toSet());
+        Set<String> seen = new HashSet<>();
+        for (PositionResponse pos : data.positionsOrEmpty()) {
+            if (pos.playerId() == null || pos.regionId() == null || pos.side() == null) {
+                throw new InvalidBackupException("Posição incompleta no backup");
+            }
+            if (!playerIds.contains(pos.playerId()) || !regionIds.contains(pos.regionId())) {
+                throw new InvalidBackupException("Posição referencia jogador ou região que não está no backup");
+            }
+            if (!seen.add(pos.playerId() + "/" + pos.regionId() + "/" + pos.side())) {
+                throw new InvalidBackupException("Posição repetida no backup");
             }
         }
         for (GrenadeResponse g : data.grenades()) {

@@ -14,6 +14,14 @@ export const GRENADE_LABELS: Record<GrenadeType, string> = {
   he: 'HE',
 };
 
+export type GrenadeSide = 'ct' | 'tr' | 'both';
+/** Lados que podem ser ligados/desligados no filtro ("both" aparece se algum estiver ligado). */
+export type TeamSide = Exclude<GrenadeSide, 'both'>;
+
+export const SIDE_LABELS: Record<GrenadeSide, string> = { ct: 'CT', tr: 'TR', both: 'Ambos' };
+export const TEAM_SIDES: TeamSide[] = ['ct', 'tr'];
+export const sideColorVar = (s: TeamSide) => `var(--color-side-${s})`;
+
 export interface Region {
   id: string;
   mapSlug: string;
@@ -36,6 +44,7 @@ export interface Grenade {
   id: string;
   mapSlug: string;
   type: GrenadeType;
+  side: GrenadeSide;
   start: LabeledPoint;
   end: LabeledPoint;
   howTo: string;
@@ -48,6 +57,7 @@ export interface Grenade {
 
 export interface GrenadeInput {
   type: GrenadeType;
+  side: GrenadeSide;
   start: LabeledPoint;
   end: LabeledPoint;
   howTo: string;
@@ -71,7 +81,10 @@ export const playerColorVar = (c: PlayerColor) => `var(--color-player-${c})`;
 export interface Player {
   id: string;
   name: string;
+  /** Função principal. */
   role: string | null;
+  /** Função secundária. */
+  secondaryRole: string | null;
   notes: string | null;
   color: PlayerColor;
   photoId: string | null;
@@ -82,9 +95,28 @@ export interface Player {
 export interface PlayerInput {
   name: string;
   role: string | null;
+  secondaryRole: string | null;
   notes: string | null;
   color: PlayerColor;
   photoId: string | null;
+}
+
+/** Onde um jogador fica num lado, apontando para uma região nomeada do mapa. */
+export interface PlayerPosition {
+  id: string;
+  playerId: string;
+  regionId: string;
+  side: TeamSide;
+  createdAt: string;
+}
+
+/** Posição com mapa e nome da região (modal do jogador). */
+export interface PlayerPositionView {
+  id: string;
+  mapSlug: string;
+  regionId: string;
+  regionName: string;
+  side: TeamSide;
 }
 
 export interface BackupData {
@@ -94,4 +126,5 @@ export interface BackupData {
   grenades: Grenade[];
   players?: Player[];
   images?: { id: string; contentType: string; data: string }[];
+  positions?: PlayerPosition[];
 }

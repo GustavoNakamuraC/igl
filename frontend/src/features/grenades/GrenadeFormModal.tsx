@@ -6,7 +6,16 @@ import { ImagePicker, imagesFromClipboard, useImageUpload } from '../../componen
 import { Thumbnails } from '../../components/Thumbnails';
 import { errorMessage } from '../../lib/api';
 import { PRINT_MAX } from '../../lib/image';
-import { GRENADE_LABELS, GRENADE_TYPES, type GrenadeInput, type GrenadeType, type LabeledPoint } from '../../lib/types';
+import {
+  GRENADE_LABELS,
+  GRENADE_TYPES,
+  SIDE_LABELS,
+  sideColorVar,
+  type GrenadeInput,
+  type GrenadeSide,
+  type GrenadeType,
+  type LabeledPoint,
+} from '../../lib/types';
 import { GrenadeIcon } from './GrenadeIcon';
 import { usePlayerStore } from '../players/playerStore';
 import { PlayerAvatar } from '../players/PlayerAvatar';
@@ -18,6 +27,7 @@ interface Props {
   title: string;
   initial: {
     type: GrenadeType | null;
+    side?: GrenadeSide | null;
     start: LabeledPoint;
     end: LabeledPoint;
     howTo: string;
@@ -34,6 +44,7 @@ const inputClass =
 
 export function GrenadeFormModal({ title, initial, onSave, onCancel }: Props) {
   const [type, setType] = useState<GrenadeType | null>(initial.type);
+  const [side, setSide] = useState<GrenadeSide | null>(initial.side ?? null);
   const [startLabel, setStartLabel] = useState(initial.start.label ?? '');
   const [endLabel, setEndLabel] = useState(initial.end.label ?? '');
   const [howTo, setHowTo] = useState(initial.howTo);
@@ -50,7 +61,7 @@ export function GrenadeFormModal({ title, initial, onSave, onCancel }: Props) {
   const togglePlayer = (id: string) =>
     setPlayerIds((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
-  const valid = type !== null && howTo.trim().length > 0 && prints.busy === 0;
+  const valid = type !== null && side !== null && howTo.trim().length > 0 && prints.busy === 0;
 
   const submit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -60,6 +71,7 @@ export function GrenadeFormModal({ title, initial, onSave, onCancel }: Props) {
     try {
       await onSave({
         type: type!,
+        side: side!,
         start: { ...initial.start, label: startLabel.trim() || null },
         end: { ...initial.end, label: endLabel.trim() || null },
         howTo: howTo.trim(),
@@ -116,6 +128,33 @@ export function GrenadeFormModal({ title, initial, onSave, onCancel }: Props) {
                 {GRENADE_LABELS[t]}
               </button>
             ))}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="mb-2 text-xs font-medium tracking-wide text-muted uppercase">Lado *</legend>
+          <div className="grid grid-cols-3 gap-2">
+            {(['ct', 'tr', 'both'] as GrenadeSide[]).map((s) => {
+              const selected = side === s;
+              const color =
+                s === 'both'
+                  ? `linear-gradient(90deg, ${sideColorVar('ct')} 50%, ${sideColorVar('tr')} 50%)`
+                  : sideColorVar(s);
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setSide(s)}
+                  className={`flex items-center justify-center gap-2 rounded-lg border px-2 py-2 text-sm font-semibold transition ${
+                    selected ? 'border-accent bg-accent/10 text-text' : 'border-border text-muted hover:border-muted'
+                  }`}
+                >
+                  <span className="h-3 w-3 rounded-full" style={{ background: color }} />
+                  {SIDE_LABELS[s]}
+                </button>
+              );
+            })}
           </div>
         </fieldset>
 

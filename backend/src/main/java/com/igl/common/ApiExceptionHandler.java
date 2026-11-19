@@ -38,6 +38,11 @@ public class ApiExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "JSON inválido");
     }
 
+    @ExceptionHandler(ConflictException.class)
+    ProblemDetail conflict(ConflictException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
+
     @ExceptionHandler(BadRequestException.class)
     ProblemDetail badRequest(BadRequestException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());

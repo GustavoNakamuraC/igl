@@ -77,6 +77,7 @@ public class GrenadeService {
         images.requireAllExist(imageIds);
 
         grenade.setType(input.type());
+        grenade.setSide(input.side());
         grenade.setStart(input.start().toEntity());
         grenade.setEnd(input.end().toEntity());
         grenade.setHowTo(input.howTo().trim());

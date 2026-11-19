@@ -53,6 +53,7 @@ export function PlayersPage() {
                   <span className="mt-3 max-w-full truncate font-semibold">{p.name}</span>
                   <span className="text-xs" style={{ color: playerColorVar(p.color) }}>
                     {p.role ?? '—'}
+                    {p.secondaryRole && <span className="text-muted"> / {p.secondaryRole}</span>}
                   </span>
                 </button>
               </li>

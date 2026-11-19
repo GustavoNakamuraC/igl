@@ -3,6 +3,7 @@ import { Button } from '../../components/Button';
 import { errorMessage } from '../../lib/api';
 import type { Region } from '../../lib/types';
 import { useRegionStore } from './regionStore';
+import { usePositionStore } from '../positions/positionStore';
 
 interface Props {
   highlightedId: string | null;
@@ -17,6 +18,8 @@ export function RegionPanel({ highlightedId, onHighlight, onRename, onEditShape,
   const remove = useRegionStore((s) => s.remove);
   const showLabels = useRegionStore((s) => s.showLabels);
   const toggleLabels = useRegionStore((s) => s.toggleLabels);
+  const positions = usePositionStore((s) => s.positions);
+  const forgetRegion = usePositionStore((s) => s.forgetRegion);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,13 +49,20 @@ export function RegionPanel({ highlightedId, onHighlight, onRename, onEditShape,
             <div className="truncate text-sm font-medium">{r.name}</div>
             {confirming === r.id ? (
               <div className="mt-1 flex items-center gap-1 text-xs">
-                <span className="text-muted">Excluir região?</span>
+                <span className="text-muted">
+                  Excluir região?
+                  {(() => {
+                    const n = positions.filter((p) => p.regionId === r.id).length;
+                    return n > 0 ? ` Remove também ${n} ${n === 1 ? 'posição' : 'posições'}.` : '';
+                  })()}
+                </span>
                 <Button
                   variant="danger"
                   className="!px-2 !py-0.5 !text-xs"
                   onClick={async () => {
                     try {
                       await remove(r.id);
+                      forgetRegion(r.id);
                       setConfirming(null);
                     } catch (e) {
                       setError(errorMessage(e));
