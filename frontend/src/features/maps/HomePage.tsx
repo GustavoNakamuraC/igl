@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { MAPS, type GameMap } from '../../data/maps';
 import { MapImage } from '../../components/MapImage';
 import { BackupButtons } from '../backup/BackupButtons';
+import { LineSelector } from '../line/LineSelector';
 
 function MapCard({ map }: { map: GameMap }) {
   return (
@@ -36,8 +37,19 @@ export function HomePage() {
           </h1>
           <p className="mt-1 text-sm text-muted">Escolha um mapa para ver regiões e granadas.</p>
         </div>
-        <BackupButtons />
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/jogadores"
+            className="rounded-md border border-border bg-surface-2 px-3 py-1.5 text-sm hover:border-accent/60"
+          >
+            Jogadores
+          </Link>
+          <BackupButtons />
+        </div>
       </header>
+      <section className="mb-6">
+        <LineSelector />
+      </section>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {MAPS.map((m) => (
           <MapCard key={m.slug} map={m} />

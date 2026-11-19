@@ -5,6 +5,7 @@ import { errorMessage } from '../../lib/api';
 import { tracked } from '../../lib/statusStore';
 import type { BackupData } from '../../lib/types';
 import { backupRepository } from './backupRepository';
+import { usePlayerStore } from '../players/playerStore';
 
 export function BackupButtons() {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -77,7 +78,10 @@ export function BackupButtons() {
                   setBusy(true);
                   try {
                     await tracked(() => backupRepository.import(pending));
-                    setMessage(`Importado: ${pending.regions.length} regiões, ${pending.grenades.length} granadas.`);
+                    await usePlayerStore.getState().load();
+                    setMessage(
+                      `Importado: ${pending.regions.length} regiões, ${pending.grenades.length} granadas, ${pending.players?.length ?? 0} jogadores.`,
+                    );
                     setPending(null);
                   } catch (e) {
                     setMessage(errorMessage(e));
@@ -92,7 +96,8 @@ export function BackupButtons() {
           }
         >
           <p className="text-sm">
-            O arquivo tem <strong>{pending.regions.length}</strong> regiões e <strong>{pending.grenades.length}</strong> granadas.
+            O arquivo tem <strong>{pending.regions.length}</strong> regiões, <strong>{pending.grenades.length}</strong> granadas,{' '}
+            <strong>{pending.players?.length ?? 0}</strong> jogadores e <strong>{pending.images?.length ?? 0}</strong> imagens.
           </p>
           <p className="mt-2 text-sm text-muted">Todos os dados atuais serão apagados e substituídos pelos do arquivo.</p>
         </Modal>

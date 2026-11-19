@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { useEscape } from '../lib/useEscape';
 
 interface Props {
   title: string;
@@ -12,16 +13,7 @@ interface Props {
 export function Modal({ title, onClose, children, footer, width = 'max-w-lg' }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [onClose]);
+  useEscape(onClose);
 
   useEffect(() => {
     const first = panelRef.current?.querySelector<HTMLElement>('[autofocus], input, textarea, select');

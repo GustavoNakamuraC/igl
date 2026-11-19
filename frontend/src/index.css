@@ -18,6 +18,13 @@
   --color-he: #8a9a3b;
 
   --color-region: #f5a623;
+
+  /* Cores dos jogadores */
+  --color-player-blue: #3b82f6;
+  --color-player-yellow: #facc15;
+  --color-player-green: #22c55e;
+  --color-player-orange: #f97316;
+  --color-player-purple: #a855f7;
 }
 
 @theme inline {

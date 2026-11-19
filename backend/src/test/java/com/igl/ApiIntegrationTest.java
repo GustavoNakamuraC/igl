@@ -31,7 +31,9 @@ class ApiIntegrationTest {
     @BeforeEach
     void clean() {
         jdbc.update("delete from grenades");
+        jdbc.update("delete from players");
         jdbc.update("delete from regions");
+        jdbc.update("delete from images");
     }
 
     private static final String REGION = """
@@ -44,10 +46,15 @@ class ApiIntegrationTest {
     @Test
     void liquibaseCreatesSchemaWithChecksAndRls() {
         Integer changesets = jdbc.queryForObject("select count(*) from databasechangelog", Integer.class);
-        assertThat(changesets).isGreaterThanOrEqualTo(5);
+        assertThat(changesets).isGreaterThanOrEqualTo(11);
         Boolean rls = jdbc.queryForObject(
                 "select relrowsecurity from pg_class where relname = 'grenades'", Boolean.class);
         assertThat(rls).isTrue();
+        Integer withoutRls = jdbc.queryForObject("""
+                select count(*) from pg_class
+                where relname in ('images', 'players', 'player_grenades', 'grenade_images') and not relrowsecurity""",
+                Integer.class);
+        assertThat(withoutRls).isZero();
     }
 
     @Test
@@ -107,7 +114,7 @@ class ApiIntegrationTest {
         mvc.perform(post("/api/maps/mirage/grenades").contentType(MediaType.APPLICATION_JSON).content(GRENADE));
 
         String backup = mvc.perform(get("/api/backup"))
-                .andExpect(jsonPath("$.version").value(1))
+                .andExpect(jsonPath("$.version").value(2))
                 .andExpect(jsonPath("$.regions", hasSize(1)))
                 .andExpect(jsonPath("$.grenades", hasSize(1)))
                 .andReturn().getResponse().getContentAsString();

@@ -11,9 +11,11 @@ export class ApiError extends Error {
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
+    const isForm = init?.body instanceof FormData;
     res = await fetch(`/api${path}`, {
       ...init,
-      headers: { 'Content-Type': 'application/json', ...init?.headers },
+      // FormData define o próprio Content-Type (multipart com boundary).
+      headers: isForm ? init?.headers : { 'Content-Type': 'application/json', ...init?.headers },
     });
   } catch {
     throw new ApiError(0, 'Não foi possível falar com o backend. Ele está rodando?');

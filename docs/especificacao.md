@@ -1,4 +1,4 @@
-# IGL — Documentação do Projeto (v0.4)
+# IGL — Documentação do Projeto (v0.5)
 
 Aplicação web para apoiar o IGL (in-game leader) de um grupo de amigos no CS2: mapas interativos com áreas nomeadas e um catálogo de granadas (lineups).
 
@@ -11,7 +11,8 @@ Aplicação web para apoiar o IGL (in-game leader) de um grupo de amigos no CS2:
 - **Migrations:** changesets **Liquibase** no backend, aplicados automaticamente ao subir a aplicação.
 - **Configuração:** a conexão com o banco é feita por variáveis no arquivo **`backend/.env.local`** (modelo em `backend/.env.example`), descritas na seção 12.
 - **Escopo desta versão (MVP):** seleção de mapa, mapa interativo, regiões nomeadas, cadastro de granadas, filtro por tipo e modal de detalhes.
-- **Fora do escopo por enquanto:** login, multiusuário, jogadores, táticas, vídeos, mobile-first (jogadores e táticas estão nos planos futuros, seção 10).
+- **Também implementado (v0.5):** cadastro de jogadores, line atual (filtro de granadas) e granadas com jogadores vinculados, prints e informações adicionais (seção 4.6 a 4.8).
+- **Fora do escopo por enquanto:** login, multiusuário, táticas, vídeos, mobile-first (táticas estão nos planos futuros, seção 10).
 
 ## 2. Tema visual
 
@@ -79,6 +80,24 @@ Fluxo:
 5. Salvar → granada aparece no mapa. Cancelar → descarta os pontos marcados.
 - `Esc` cancela o modo de cadastro a qualquer momento.
 
+### 4.6 Jogadores
+- Página `/jogadores` (link na home e no topo do mapa).
+- Cadastro com **nome** (obrigatório), **função** (texto livre com sugestões: IGL, Entry, AWP, Suporte, Lurker…), **informações adicionais**, **cor** (azul, amarelo, verde, laranja, roxo) e **foto** opcional.
+- Sem jogadores: aviso "Nenhum jogador cadastrado" com botão para cadastrar.
+- Com jogadores: círculos na cor do jogador, com a foto (ou a inicial) e o nome. Clique abre o modal com as informações, quantas granadas sabe por mapa, **Editar** e **Excluir**.
+- Excluir um jogador remove só os vínculos dele; as granadas continuam.
+
+### 4.7 Line atual
+- Seleção de 0 a 5 jogadores que estão jogando agora (na home, na página de jogadores e, compacta, na barra de filtros do mapa).
+- **Nenhum selecionado (padrão):** o mapa mostra todas as granadas.
+- **Com seleção:** o mapa mostra apenas granadas vinculadas a pelo menos um jogador da line (granadas sem jogador ficam escondidas). Combina com o filtro por tipo; os contadores dos chips refletem a line.
+- A line fica salva no navegador (`localStorage`), não no banco.
+
+### 4.8 Extras da granada
+- **Quem sabe fazer:** vínculo com vários jogadores.
+- **Prints:** até 10 imagens por granada (ex.: onde ficar e o pixel da mira). Adicionar por arquivo ou colando com Ctrl+V; miniaturas no modal de detalhes, com visualização ampliada (setas navegam, Esc fecha).
+- **Informações adicionais:** texto livre opcional.
+
 ## 5. Modelo de dados
 
 Coordenadas **normalizadas (0 a 1)** em relação à imagem do mapa, para funcionar em qualquer zoom/tamanho.
@@ -108,6 +127,17 @@ grenades  (id uuid pk, map_slug text,
            how_to text, created_at, updated_at)
 ```
 
+```
+images          (id uuid pk, content_type text, data bytea, size_bytes int, created_at)
+players         (id uuid pk, name text, role text?, notes text?,
+                 color text check in ('blue','yellow','green','orange','purple'),
+                 photo_id uuid? fk images, created_at, updated_at)
+player_grenades (player_id fk players cascade, grenade_id fk grenades cascade, created_at)  -- pk composta
+grenade_images  (grenade_id fk grenades cascade, image_id fk images cascade, position int)  -- pk (grenade_id, position)
+grenades        + notes text?
+```
+
+- **Imagens no banco:** o front reduz e converte para WebP antes de enviar (foto até 512 px, print até 1600 px, qualidade 0,8), o que costuma dar 100 a 250 KB por print. O backend aceita WebP/JPEG/PNG até 2 MB. Imagens são imutáveis (trocar = nova imagem) e são servidas com cache longo. Imagens que deixam de ser usadas são apagadas na hora; uploads abandonados (formulário cancelado) são limpos a cada hora.
 - Os 8 mapas continuam estáticos no código (não precisam de tabela).
 - Esquema versionado como changesets Liquibase em `backend/src/main/resources/db/changelog/changes/` (um arquivo por mudança, `000N-descricao.xml`, incluídos em ordem pelo `db.changelog-master.xml`). Changeset já aplicado nunca é editado: mudanças novas = arquivo novo.
 - O Liquibase roda sozinho no startup do Spring e registra o que já foi aplicado na tabela `databasechangelog`.
@@ -119,10 +149,10 @@ grenades  (id uuid pk, map_slug text,
 - **Rótulo automático:** se um ponto cai dentro de uma região nomeada, o nome da região é sugerido como valor padrão.
 - **Persistência:** backend Spring Boot (JPA) sobre o Postgres do Supabase. No front, a UI usa stores (Zustand) que chamam repositórios (`regionRepository`, `grenadeRepository`), que são os únicos a chamar a API (`/api/...`).
 - **Sem fallback local:** se o backend estiver fora do ar, o front mostra um aviso discreto com "Tentar de novo".
-- **API REST:** `GET/POST /api/maps/{slug}/regions`, `PUT/DELETE /api/regions/{id}`, `GET/POST /api/maps/{slug}/grenades`, `PUT/DELETE /api/grenades/{id}`, `GET/POST /api/backup`, `GET /api/actuator/health`.
+- **API REST:** `GET/POST /api/maps/{slug}/regions`, `PUT/DELETE /api/regions/{id}`, `GET/POST /api/maps/{slug}/grenades`, `PUT/DELETE /api/grenades/{id}`, `GET/POST /api/players`, `PUT/DELETE /api/players/{id}`, `GET /api/players/{id}/grenade-counts`, `POST /api/images` (multipart), `GET /api/images/{id}`, `GET/POST /api/backup`, `GET /api/actuator/health`.
 - **Segurança (decisão consciente):** não há login; a API não tem autenticação e é pensada para rodar localmente. No Supabase, as tabelas ficam com RLS ligado **sem políticas**, então a API pública do Supabase (chave `anon`) não lê nem altera nada; só o backend, conectado como dono das tabelas, acessa os dados. Se um dia o site for hospedado, a evolução é adicionar um login simples no backend.
 - **Plano free do Supabase:** projetos sem atividade por cerca de uma semana são pausados e precisam ser reativados manualmente no painel. Não há perda de dados, mas o site fica fora do ar até lá.
-- **Backup:** botões de exportar/importar tudo em JSON.
+- **Backup:** botões de exportar/importar tudo em JSON. Versão 2 inclui jogadores, vínculos e imagens (em base64); a importação aceita arquivos v1 e v2 e substitui tudo.
 
 ## 7. Stack sugerida
 
@@ -164,7 +194,7 @@ grenades  (id uuid pk, map_slug text,
 
 ## 10. Planos futuros
 
-### 10.1 Jogadores e granadas que cada um sabe
+### 10.1 Jogadores e granadas que cada um sabe — implementado na v0.5 (seções 4.6 a 4.8)
 - Cadastro de **jogadores** do grupo. Não são usuários do sistema: não há login nem conta, é só um registro (nome/apelido).
 - **Vínculo jogador ↔ granada:** marcar quais granadas cada jogador sabe fazer. Uma granada pode ser sabida por vários jogadores, e um jogador sabe várias granadas.
 - Usos previstos:

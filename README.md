@@ -111,4 +111,7 @@ As coordenadas são guardadas normalizadas (0 a 1), então trocar a imagem por o
 - **+ Nova granada:** clique onde ela é arremessada e depois onde cai. Os nomes das regiões são sugeridos automaticamente.
 - **Filtro:** clique num tipo para ligar/desligar; duplo clique (ou "só este") mostra só aquele tipo.
 - **Detalhes:** clique no ícone para ver todas as granadas que caem naquele ponto (pontos a menos de 1,5% da largura do mapa são agrupados), com editar e excluir.
-- **Backup:** "Exportar JSON" e "Importar JSON" na tela inicial. Importar substitui todos os dados.
+- **Jogadores:** em **Jogadores** (home ou topo do mapa), cadastre nome, função, cor, informações e foto. Clique no círculo de um jogador para ver os detalhes, editar ou excluir.
+- **Line atual:** escolha de 0 a 5 jogadores na home ou na barra do mapa. Sem ninguém selecionado o mapa mostra todas as granadas; com line, só as granadas que alguém da line sabe fazer. A escolha fica salva no navegador.
+- **Granada completa:** no cadastro/edição marque quem sabe fazer, escreva informações adicionais e anexe prints (arquivo ou Ctrl+V). As imagens são comprimidas para WebP antes de ir ao banco.
+- **Backup:** "Exportar JSON" e "Importar JSON" na tela inicial. Importar substitui todos os dados. O backup inclui jogadores e imagens.

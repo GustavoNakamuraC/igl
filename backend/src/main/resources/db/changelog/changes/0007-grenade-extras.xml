@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="0007-grenades-notes" author="igl">
+        <addColumn tableName="grenades">
+            <column name="notes" type="text" remarks="Informações adicionais da granada"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="grenades" columnName="notes"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0007-create-player-grenades" author="igl">
+        <createTable tableName="player_grenades" remarks="Quais granadas cada jogador sabe fazer (N:N)">
+            <column name="player_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_player_grenades_player"
+                             referencedTableName="players" referencedColumnNames="id" deleteCascade="true"/>
+            </column>
+            <column name="grenade_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_player_grenades_grenade"
+                             referencedTableName="grenades" referencedColumnNames="id" deleteCascade="true"/>
+            </column>
+            <column name="created_at" type="timestamptz" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="player_grenades" columnNames="player_id, grenade_id"
+                       constraintName="pk_player_grenades"/>
+        <createIndex tableName="player_grenades" indexName="ix_player_grenades_grenade">
+            <column name="grenade_id"/>
+        </createIndex>
+        <rollback>
+            <dropTable tableName="player_grenades"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0007-create-grenade-images" author="igl">
+        <createTable tableName="grenade_images" remarks="Prints anexados a uma granada, em ordem">
+            <column name="grenade_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_grenade_images_grenade"
+                             referencedTableName="grenades" referencedColumnNames="id" deleteCascade="true"/>
+            </column>
+            <column name="image_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_grenade_images_image"
+                             referencedTableName="images" referencedColumnNames="id" deleteCascade="true"/>
+            </column>
+            <column name="position" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="grenade_images" columnNames="grenade_id, position"
+                       constraintName="pk_grenade_images"/>
+        <createIndex tableName="grenade_images" indexName="ix_grenade_images_image">
+            <column name="image_id"/>
+        </createIndex>
+        <rollback>
+            <dropTable tableName="grenade_images"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
