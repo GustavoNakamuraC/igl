@@ -14,6 +14,8 @@ import { GrenadeLines, GrenadeMarkers, StartMarkers } from '../grenades/GrenadeL
 import { FilterChips } from '../grenades/FilterChips';
 import { GrenadeFormModal } from '../grenades/GrenadeFormModal';
 import { GrenadeDetailsModal } from '../grenades/GrenadeDetailsModal';
+import { LineSelector } from '../line/LineSelector';
+import { matchesLine, useLineStore } from '../line/lineStore';
 
 type Mode =
   | { kind: 'view' }
@@ -39,6 +41,7 @@ export function MapPage() {
   const loadGrenades = useGrenadeStore((s) => s.load);
   const createGrenade = useGrenadeStore((s) => s.create);
   const updateGrenade = useGrenadeStore((s) => s.update);
+  const line = useLineStore((s) => s.ids);
 
   const [mode, setMode] = useState<Mode>({ kind: 'view' });
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -57,11 +60,13 @@ export function MapPage() {
     void loadGrenades(map.slug).catch(() => {});
   }, [map, loadRegions, loadGrenades]);
 
-  const visible = useMemo(() => grenades.filter((g) => activeTypes.includes(g.type)), [grenades, activeTypes]);
+  // Filtro da line vem antes do filtro por tipo; os contadores dos chips refletem a line.
+  const inLine = useMemo(() => grenades.filter((g) => matchesLine(g.playerIds, line)), [grenades, line]);
+  const visible = useMemo(() => inLine.filter((g) => activeTypes.includes(g.type)), [inLine, activeTypes]);
   const groups = useMemo(() => groupByProximity(visible, (g) => g.end), [visible]);
   const counts = useMemo(
-    () => grenades.reduce<Record<string, number>>((acc, g) => ({ ...acc, [g.type]: (acc[g.type] ?? 0) + 1 }), {}),
-    [grenades],
+    () => inLine.reduce<Record<string, number>>((acc, g) => ({ ...acc, [g.type]: (acc[g.type] ?? 0) + 1 }), {}),
+    [inLine],
   );
 
   // Se o grupo em hover mudou (filtro/edição), descarta a referência antiga.
@@ -141,6 +146,9 @@ export function MapPage() {
         </Link>
         <h1 className="text-lg font-bold tracking-wide">{map.name}</h1>
         <div className="ml-auto flex flex-wrap items-center gap-2">
+          <Link to="/jogadores" className="rounded-md px-2 py-1 text-sm text-muted hover:bg-surface-2 hover:text-text">
+            Jogadores
+          </Link>
           <Button
             variant="primary"
             active={mode.kind === 'newGrenade'}
@@ -163,8 +171,11 @@ export function MapPage() {
       </header>
 
       {/* Filtros */}
-      <div className="flex items-center gap-4 border-b border-border bg-bg-2 px-4 py-2">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border bg-bg-2 px-4 py-2">
         <FilterChips counts={counts} />
+        <div className="ml-auto">
+          <LineSelector compact />
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1">

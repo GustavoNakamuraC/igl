@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="0006-create-players" author="igl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="players"/>
+            </not>
+        </preConditions>
+        <createTable tableName="players" remarks="Jogadores do grupo (não são usuários do sistema)">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" primaryKeyName="pk_players"/>
+            </column>
+            <column name="name" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="text" remarks="Função no time (entry, AWP, suporte...)"/>
+            <column name="notes" type="text" remarks="Informações adicionais"/>
+            <column name="color" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="photo_id" type="uuid">
+                <constraints foreignKeyName="fk_players_photo" referencedTableName="images" referencedColumnNames="id"
+                             deleteCascade="false"/>
+            </column>
+            <column name="created_at" type="timestamptz" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamptz" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            alter table players
+                add constraint ck_players_color check (color in ('blue', 'yellow', 'green', 'orange', 'purple'))
+        </sql>
+        <rollback>
+            <dropTable tableName="players"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

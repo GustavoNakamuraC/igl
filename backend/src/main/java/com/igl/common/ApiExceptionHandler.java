@@ -7,6 +7,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.stream.Collectors;
 
@@ -34,5 +36,20 @@ public class ApiExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ProblemDetail unreadable(HttpMessageNotReadableException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "JSON inválido");
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    ProblemDetail badRequest(BadRequestException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    ProblemDetail missingFile(MissingServletRequestPartException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Envie o arquivo no campo 'file'");
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    ProblemDetail tooLarge(MaxUploadSizeExceededException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE, "Imagem maior que 2 MB");
     }
 }

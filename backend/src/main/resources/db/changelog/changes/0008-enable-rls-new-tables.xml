@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Mesmo padrão do 0004: RLS sem políticas bloqueia a API pública do Supabase. -->
+    <changeSet id="0008-enable-rls-new-tables" author="igl">
+        <sql>
+            alter table images enable row level security;
+            alter table players enable row level security;
+            alter table player_grenades enable row level security;
+            alter table grenade_images enable row level security;
+        </sql>
+        <rollback>
+            <sql>
+                alter table images disable row level security;
+                alter table players disable row level security;
+                alter table player_grenades disable row level security;
+                alter table grenade_images disable row level security;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

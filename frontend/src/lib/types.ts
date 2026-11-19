@@ -39,6 +39,9 @@ export interface Grenade {
   start: LabeledPoint;
   end: LabeledPoint;
   howTo: string;
+  notes: string | null;
+  playerIds: string[];
+  imageIds: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -48,6 +51,40 @@ export interface GrenadeInput {
   start: LabeledPoint;
   end: LabeledPoint;
   howTo: string;
+  notes: string | null;
+  playerIds: string[];
+  imageIds: string[];
+}
+
+export type PlayerColor = 'blue' | 'yellow' | 'green' | 'orange' | 'purple';
+
+export const PLAYER_COLORS: { value: PlayerColor; label: string }[] = [
+  { value: 'blue', label: 'Azul' },
+  { value: 'yellow', label: 'Amarelo' },
+  { value: 'green', label: 'Verde' },
+  { value: 'orange', label: 'Laranja' },
+  { value: 'purple', label: 'Roxo' },
+];
+
+export const playerColorVar = (c: PlayerColor) => `var(--color-player-${c})`;
+
+export interface Player {
+  id: string;
+  name: string;
+  role: string | null;
+  notes: string | null;
+  color: PlayerColor;
+  photoId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlayerInput {
+  name: string;
+  role: string | null;
+  notes: string | null;
+  color: PlayerColor;
+  photoId: string | null;
 }
 
 export interface BackupData {
@@ -55,4 +92,6 @@ export interface BackupData {
   exportedAt: string;
   regions: Region[];
   grenades: Grenade[];
+  players?: Player[];
+  images?: { id: string; contentType: string; data: string }[];
 }
