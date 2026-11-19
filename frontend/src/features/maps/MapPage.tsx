@@ -6,7 +6,7 @@ import { distance, groupByProximity, regionNameAt, type Group } from '../../lib/
 import type { Grenade, Point, Region } from '../../lib/types';
 import { anchorStyle, MapCanvas, type MapClick } from './MapCanvas';
 import { useRegionStore } from '../regions/regionStore';
-import { useGrenadeStore } from '../grenades/grenadeStore';
+import { matchesSide, useGrenadeStore } from '../grenades/grenadeStore';
 import { DraftPolygon, RegionLabels, RegionShapes, Vertices } from '../regions/RegionLayer';
 import { RegionNameModal } from '../regions/RegionNameModal';
 import { RegionPanel } from '../regions/RegionPanel';
@@ -38,6 +38,7 @@ export function MapPage() {
 
   const grenades = useGrenadeStore((s) => s.grenades);
   const activeTypes = useGrenadeStore((s) => s.activeTypes);
+  const activeSides = useGrenadeStore((s) => s.activeSides);
   const loadGrenades = useGrenadeStore((s) => s.load);
   const createGrenade = useGrenadeStore((s) => s.create);
   const updateGrenade = useGrenadeStore((s) => s.update);
@@ -60,14 +61,28 @@ export function MapPage() {
     void loadGrenades(map.slug).catch(() => {});
   }, [map, loadRegions, loadGrenades]);
 
-  // Filtro da line vem antes do filtro por tipo; os contadores dos chips refletem a line.
+  // Filtros: line ∧ lado ∧ tipo. Cada contador considera a line e o outro filtro (não o próprio),
+  // para mostrar quantas apareceriam ao ligar aquele chip.
   const inLine = useMemo(() => grenades.filter((g) => matchesLine(g.playerIds, line)), [grenades, line]);
-  const visible = useMemo(() => inLine.filter((g) => activeTypes.includes(g.type)), [inLine, activeTypes]);
-  const groups = useMemo(() => groupByProximity(visible, (g) => g.end), [visible]);
-  const counts = useMemo(
-    () => inLine.reduce<Record<string, number>>((acc, g) => ({ ...acc, [g.type]: (acc[g.type] ?? 0) + 1 }), {}),
-    [inLine],
+  const visible = useMemo(
+    () => inLine.filter((g) => activeTypes.includes(g.type) && matchesSide(g.side, activeSides)),
+    [inLine, activeTypes, activeSides],
   );
+  const groups = useMemo(() => groupByProximity(visible, (g) => g.end), [visible]);
+  const counts = useMemo(() => {
+    const acc: Record<string, number> = {};
+    for (const g of inLine) if (matchesSide(g.side, activeSides)) acc[g.type] = (acc[g.type] ?? 0) + 1;
+    return acc;
+  }, [inLine, activeSides]);
+  const sideCounts = useMemo(() => {
+    const acc: Record<string, number> = { ct: 0, tr: 0 };
+    for (const g of inLine) {
+      if (!activeTypes.includes(g.type)) continue;
+      if (g.side !== 'tr') acc.ct++;
+      if (g.side !== 'ct') acc.tr++;
+    }
+    return acc;
+  }, [inLine, activeTypes]);
 
   // Se o grupo em hover mudou (filtro/edição), descarta a referência antiga.
   useEffect(() => setHovered(null), [groups]);
@@ -172,7 +187,7 @@ export function MapPage() {
 
       {/* Filtros */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border bg-bg-2 px-4 py-2">
-        <FilterChips counts={counts} />
+        <FilterChips counts={counts} sideCounts={sideCounts} />
         <div className="ml-auto">
           <LineSelector compact />
         </div>

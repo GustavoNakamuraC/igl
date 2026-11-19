@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Lado da granada. As já cadastradas viram 'both' (aparecem nos dois filtros). -->
+    <changeSet id="0009-grenades-side" author="igl">
+        <addColumn tableName="grenades">
+            <column name="side" type="text" defaultValue="both" remarks="ct, tr ou both">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>
+            alter table grenades
+                add constraint ck_grenades_side check (side in ('ct', 'tr', 'both'))
+        </sql>
+        <rollback>
+            <dropColumn tableName="grenades" columnName="side"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

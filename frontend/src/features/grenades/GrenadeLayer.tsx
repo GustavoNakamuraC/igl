@@ -1,7 +1,8 @@
 import type { Group } from '../../lib/geometry';
-import { GRENADE_LABELS, type Grenade } from '../../lib/types';
+import { GRENADE_LABELS, SIDE_LABELS, type Grenade } from '../../lib/types';
 import { anchorStyle, NO_PAN } from '../maps/MapCanvas';
 import { GRENADE_COLOR, GrenadeIcon } from './GrenadeIcon';
+import { sideRingBackground } from './SideBadge';
 
 export function GrenadeLines({ grenades, px }: { grenades: Grenade[]; px: number }) {
   return (
@@ -53,7 +54,9 @@ export function GrenadeMarkers({ groups, scale, interactive, hovered, onHover, o
         const first = group.items[0];
         const types = [...new Set(group.items.map((g) => g.type))];
         const isHovered = hovered === group;
-        const label = group.items.map((g) => `${GRENADE_LABELS[g.type]}${g.end.label ? ` · ${g.end.label}` : ''}`).join('\n');
+        const label = group.items
+          .map((g) => `${GRENADE_LABELS[g.type]} ${SIDE_LABELS[g.side]}${g.end.label ? ` · ${g.end.label}` : ''}`)
+          .join('\n');
         return (
           <button
             key={group.items.map((g) => g.id).join()}
@@ -78,7 +81,14 @@ export function GrenadeMarkers({ groups, scale, interactive, hovered, onHover, o
                 filter: isHovered ? `drop-shadow(0 0 6px ${GRENADE_COLOR[first.type]})` : 'drop-shadow(0 1px 2px #000)',
               }}
             >
-              <GrenadeIcon type={first.type} size={28} />
+              {/* Anel na cor do lado (CT azul, TR amarelo; metade/metade se misto ou "Ambos"). */}
+              <span
+                data-testid="side-ring"
+                className="block rounded-full p-[3px]"
+                style={{ background: sideRingBackground(group.items.map((g) => g.side)) }}
+              >
+                <GrenadeIcon type={first.type} size={26} />
+              </span>
               {types.length > 1 && (
                 <span className="absolute -bottom-1 -left-1 flex">
                   {types.slice(1).map((t) => (

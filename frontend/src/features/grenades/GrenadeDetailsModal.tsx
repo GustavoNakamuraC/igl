@@ -5,6 +5,7 @@ import { errorMessage } from '../../lib/api';
 import { GRENADE_LABELS, type Grenade } from '../../lib/types';
 import { Thumbnails } from '../../components/Thumbnails';
 import { GrenadeIcon } from './GrenadeIcon';
+import { SideBadge } from './SideBadge';
 import { useGrenadeStore } from './grenadeStore';
 import { usePlayerStore } from '../players/playerStore';
 import { PlayerAvatar } from '../players/PlayerAvatar';
@@ -47,6 +48,7 @@ export function GrenadeDetailsModal({ grenadeIds, onEdit, onClose }: Props) {
               <div className="flex items-center gap-2">
                 <GrenadeIcon type={g.type} size={24} />
                 <span className="font-semibold">{GRENADE_LABELS[g.type]}</span>
+                <SideBadge side={g.side} />
               </div>
               <div className="flex gap-1">
                 {confirming === g.id ? (

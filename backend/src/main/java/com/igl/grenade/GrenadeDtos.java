@@ -31,6 +31,7 @@ public final class GrenadeDtos {
 
     public record GrenadeInput(
             @NotNull GrenadeType type,
+            @NotNull GrenadeSide side,
             @NotNull @Valid PointInput start,
             @NotNull @Valid PointInput end,
             @NotBlank @Size(max = 4000) String howTo,
@@ -47,7 +48,7 @@ public final class GrenadeDtos {
         }
     }
 
-    public record GrenadeResponse(UUID id, String mapSlug, GrenadeType type, PointInput start, PointInput end,
+    public record GrenadeResponse(UUID id, String mapSlug, GrenadeType type, GrenadeSide side, PointInput start, PointInput end,
                                   String howTo, String notes, List<UUID> playerIds, List<UUID> imageIds,
                                   Instant createdAt, Instant updatedAt) {
         public static GrenadeResponse from(Grenade g) {
@@ -55,7 +56,7 @@ public final class GrenadeDtos {
                     .sorted(Comparator.comparing(Player::getCreatedAt))
                     .map(Player::getId)
                     .toList();
-            return new GrenadeResponse(g.getId(), g.getMapSlug(), g.getType(), PointInput.from(g.getStart()),
+            return new GrenadeResponse(g.getId(), g.getMapSlug(), g.getType(), g.getSide(), PointInput.from(g.getStart()),
                     PointInput.from(g.getEnd()), g.getHowTo(), g.getNotes(), players, List.copyOf(g.getImageIds()),
                     g.getCreatedAt(), g.getUpdatedAt());
         }

@@ -40,7 +40,7 @@ class ApiIntegrationTest {
             {"name":"Varanda","points":[{"x":0.1,"y":0.1},{"x":0.3,"y":0.1},{"x":0.2,"y":0.3}]}""";
 
     private static final String GRENADE = """
-            {"type":"smoke","start":{"x":0.2,"y":0.15,"label":"Varanda"},
+            {"type":"smoke","side":"tr","start":{"x":0.2,"y":0.15,"label":"Varanda"},
              "end":{"x":0.5,"y":0.5,"label":"Meio"},"howTo":"Mira na antena e pula"}""";
 
     @Test
@@ -83,14 +83,28 @@ class ApiIntegrationTest {
         String body = mvc.perform(post("/api/maps/dust2/grenades").contentType(MediaType.APPLICATION_JSON).content(GRENADE))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.type").value("smoke"))
+                .andExpect(jsonPath("$.side").value("tr"))
                 .andExpect(jsonPath("$.start.label").value("Varanda"))
                 .andExpect(jsonPath("$.end.x").value(0.5))
                 .andReturn().getResponse().getContentAsString();
         String id = JsonPath.read(body, "$.id");
 
         mvc.perform(put("/api/grenades/" + id).contentType(MediaType.APPLICATION_JSON)
-                        .content(GRENADE.replace("smoke", "flash")))
-                .andExpect(jsonPath("$.type").value("flash"));
+                        .content(GRENADE.replace("smoke", "flash").replace("\"tr\"", "\"ct\"")))
+                .andExpect(jsonPath("$.type").value("flash"))
+                .andExpect(jsonPath("$.side").value("ct"));
+
+        // Lado é obrigatório e só aceita ct, tr ou both.
+        mvc.perform(post("/api/maps/dust2/grenades").contentType(MediaType.APPLICATION_JSON)
+                        .content(GRENADE.replace("\"side\":\"tr\",", "")))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/maps/dust2/grenades").contentType(MediaType.APPLICATION_JSON)
+                        .content(GRENADE.replace("\"tr\"", "\"spec\"")))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/maps/dust2/grenades").contentType(MediaType.APPLICATION_JSON)
+                        .content(GRENADE.replace("\"tr\"", "\"both\"")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.side").value("both"));
 
         mvc.perform(post("/api/maps/dust2/grenades").contentType(MediaType.APPLICATION_JSON)
                         .content(GRENADE.replace("smoke", "decoy")))
@@ -105,7 +119,7 @@ class ApiIntegrationTest {
                 .andExpect(status().isNotFound());
 
         mvc.perform(delete("/api/grenades/" + id)).andExpect(status().isNoContent());
-        mvc.perform(get("/api/maps/dust2/grenades")).andExpect(jsonPath("$", hasSize(0)));
+        mvc.perform(get("/api/maps/dust2/grenades")).andExpect(jsonPath("$", hasSize(1)));
     }
 
     @Test
@@ -127,7 +141,8 @@ class ApiIntegrationTest {
         mvc.perform(get("/api/maps/mirage/grenades"))
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id").value(grenadeId))
-                .andExpect(jsonPath("$[0].howTo").value("Mira na antena e pula"));
+                .andExpect(jsonPath("$[0].howTo").value("Mira na antena e pula"))
+                .andExpect(jsonPath("$[0].side").value("tr"));
         mvc.perform(get("/api/maps/mirage/regions"))
                 .andExpect(jsonPath("$[0].points", hasSize(3)));
     }

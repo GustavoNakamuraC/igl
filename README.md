@@ -109,7 +109,7 @@ As coordenadas são guardadas normalizadas (0 a 1), então trocar a imagem por o
 
 - **Nomear região:** clique nos pontos do polígono no mapa e feche clicando no primeiro ponto (ou Enter). Backspace desfaz o último ponto, Esc cancela. O botão **Regiões** abre o painel para renomear, editar a forma (arrastar vértices; duplo clique remove um vértice) e excluir.
 - **+ Nova granada:** clique onde ela é arremessada e depois onde cai. Os nomes das regiões são sugeridos automaticamente.
-- **Filtro:** clique num tipo para ligar/desligar; duplo clique (ou "só este") mostra só aquele tipo.
+- **Filtro:** clique num tipo para ligar/desligar; duplo clique (ou "só este") mostra só aquele tipo. Os chips **CT** (azul) e **TR** (amarelo) filtram pelo lado; granadas marcadas como "Ambos" aparecem com qualquer lado ligado.
 - **Detalhes:** clique no ícone para ver todas as granadas que caem naquele ponto (pontos a menos de 1,5% da largura do mapa são agrupados), com editar e excluir.
 - **Jogadores:** em **Jogadores** (home ou topo do mapa), cadastre nome, função, cor, informações e foto. Clique no círculo de um jogador para ver os detalhes, editar ou excluir.
 - **Line atual:** escolha de 0 a 5 jogadores na home ou na barra do mapa. Sem ninguém selecionado o mapa mostra todas as granadas; com line, só as granadas que alguém da line sabe fazer. A escolha fica salva no navegador.

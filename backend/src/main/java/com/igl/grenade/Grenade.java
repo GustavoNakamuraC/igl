@@ -24,6 +24,9 @@ public class Grenade {
     @Column(nullable = false)
     private GrenadeType type;
 
+    @Column(nullable = false)
+    private GrenadeSide side = GrenadeSide.BOTH;
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "x", column = @Column(name = "start_x", nullable = false)),
@@ -84,6 +87,8 @@ public class Grenade {
     public void setMapSlug(String mapSlug) { this.mapSlug = mapSlug; }
     public GrenadeType getType() { return type; }
     public void setType(GrenadeType type) { this.type = type; }
+    public GrenadeSide getSide() { return side; }
+    public void setSide(GrenadeSide side) { this.side = side; }
     public ThrowPoint getStart() { return start; }
     public void setStart(ThrowPoint start) { this.start = start; }
     public ThrowPoint getEnd() { return end; }

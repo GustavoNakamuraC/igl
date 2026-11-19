@@ -1,4 +1,4 @@
-# IGL — Documentação do Projeto (v0.5)
+# IGL — Documentação do Projeto (v0.6)
 
 Aplicação web para apoiar o IGL (in-game leader) de um grupo de amigos no CS2: mapas interativos com áreas nomeadas e um catálogo de granadas (lineups).
 
@@ -53,6 +53,8 @@ Ao abrir um mapa, a primeira coisa exibida é o mapa em tela cheia (área princi
 - Ao passar o mouse sobre o ícone: destaque (brilho/escala/cursor pointer). Opcional: mostrar a linha ligando início → fim.
 
 ### 4.3 Filtro de granadas
+- **Lado:** chips **CT** (azul) e **TR** (amarelo), ambos ativos por padrão. Granadas "Ambos" aparecem enquanto qualquer um dos dois estiver ligado. Duplo clique = só aquele lado.
+- No mapa, cada ícone tem um anel na cor do lado (metade azul/metade amarelo para "Ambos" ou grupos com lados diferentes).
 - Chips/toggles por tipo. Padrão: todos ativos.
 - O mapa mostra apenas os pontos dos tipos selecionados.
 - Opção “mostrar só um tipo” (clique duplo ou botão “só este”).
@@ -74,6 +76,7 @@ Fluxo:
 3. Clicar no mapa para marcar o **ponto final**.
 4. Abre o **modal de cadastro** com os campos:
    - Tipo de granada (obrigatório)
+   - Lado: CT, TR ou Ambos (obrigatório)
    - Ponto de início (nome, sugerir região onde o ponto caiu; editável)
    - Onde cai (nome, sugerir região onde o ponto caiu; editável)
    - Como fazer (texto, obrigatório)
@@ -108,6 +111,7 @@ Region   { id, mapSlug, name, points: [{x,y}] }
 Grenade  {
   id, mapSlug,
   type: 'smoke' | 'molotov' | 'flash' | 'he',
+  side: 'ct' | 'tr' | 'both',
   start: { x, y, label },
   end:   { x, y, label },
   howTo: string,
@@ -135,6 +139,7 @@ players         (id uuid pk, name text, role text?, notes text?,
 player_grenades (player_id fk players cascade, grenade_id fk grenades cascade, created_at)  -- pk composta
 grenade_images  (grenade_id fk grenades cascade, image_id fk images cascade, position int)  -- pk (grenade_id, position)
 grenades        + notes text?
+                + side text not null default 'both' check in ('ct','tr','both')   -- 0009
 ```
 
 - **Imagens no banco:** o front reduz e converte para WebP antes de enviar (foto até 512 px, print até 1600 px, qualidade 0,8), o que costuma dar 100 a 250 KB por print. O backend aceita WebP/JPEG/PNG até 2 MB. Imagens são imutáveis (trocar = nova imagem) e são servidas com cache longo. Imagens que deixam de ser usadas são apagadas na hora; uploads abandonados (formulário cancelado) são limpos a cada hora.

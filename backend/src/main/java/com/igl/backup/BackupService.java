@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.igl.backup.BackupData.ImageData;
 import com.igl.grenade.GrenadeDtos.GrenadeResponse;
 import com.igl.grenade.GrenadeRepository;
+import com.igl.grenade.GrenadeSide;
 import com.igl.image.ImageRepository;
 import com.igl.common.BadRequestException;
 import com.igl.map.MapSlug;
@@ -91,10 +92,12 @@ public class BackupService {
         for (GrenadeResponse g : data.grenades()) {
             UUID id = idOrNew(g.id());
             jdbc.update("""
-                            insert into grenades (id, map_slug, type, start_x, start_y, start_label,
+                            insert into grenades (id, map_slug, type, side, start_x, start_y, start_label,
                                                   end_x, end_y, end_label, how_to, notes, created_at, updated_at)
-                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     id, g.mapSlug(), g.type().value(),
+                    // Backups anteriores ao lado CT/TR não têm o campo.
+                    (g.side() != null ? g.side() : GrenadeSide.BOTH).value(),
                     g.start().x(), g.start().y(), g.start().label(),
                     g.end().x(), g.end().y(), g.end().label(),
                     g.howTo(), g.notes(), ts(g.createdAt(), now), ts(g.updatedAt(), now));

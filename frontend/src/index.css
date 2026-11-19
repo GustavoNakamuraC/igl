@@ -19,6 +19,10 @@
 
   --color-region: #f5a623;
 
+  /* Lado da granada */
+  --color-side-ct: #4f8fe8;
+  --color-side-tr: #e8b931;
+
   /* Cores dos jogadores */
   --color-player-blue: #3b82f6;
   --color-player-yellow: #facc15;

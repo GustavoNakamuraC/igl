@@ -14,6 +14,14 @@ export const GRENADE_LABELS: Record<GrenadeType, string> = {
   he: 'HE',
 };
 
+export type GrenadeSide = 'ct' | 'tr' | 'both';
+/** Lados que podem ser ligados/desligados no filtro ("both" aparece se algum estiver ligado). */
+export type TeamSide = Exclude<GrenadeSide, 'both'>;
+
+export const SIDE_LABELS: Record<GrenadeSide, string> = { ct: 'CT', tr: 'TR', both: 'Ambos' };
+export const TEAM_SIDES: TeamSide[] = ['ct', 'tr'];
+export const sideColorVar = (s: TeamSide) => `var(--color-side-${s})`;
+
 export interface Region {
   id: string;
   mapSlug: string;
@@ -36,6 +44,7 @@ export interface Grenade {
   id: string;
   mapSlug: string;
   type: GrenadeType;
+  side: GrenadeSide;
   start: LabeledPoint;
   end: LabeledPoint;
   howTo: string;
@@ -48,6 +57,7 @@ export interface Grenade {
 
 export interface GrenadeInput {
   type: GrenadeType;
+  side: GrenadeSide;
   start: LabeledPoint;
   end: LabeledPoint;
   howTo: string;

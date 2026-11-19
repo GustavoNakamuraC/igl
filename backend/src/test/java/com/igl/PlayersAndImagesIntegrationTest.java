@@ -62,7 +62,7 @@ class PlayersAndImagesIntegrationTest {
         String players = playerIds.stream().map(id -> "\"" + id + "\"").reduce((a, b) -> a + "," + b).orElse("");
         String images = imageIds.stream().map(id -> "\"" + id + "\"").reduce((a, b) -> a + "," + b).orElse("");
         return """
-                {"type":"smoke","start":{"x":0.2,"y":0.2,"label":"T spawn"},"end":{"x":0.5,"y":0.5,"label":"Meio"},
+                {"type":"smoke","side":"ct","start":{"x":0.2,"y":0.2,"label":"T spawn"},"end":{"x":0.5,"y":0.5,"label":"Meio"},
                  "howTo":"Mira na antena","notes":"Funciona só no tick 64","playerIds":[%s],"imageIds":[%s]}"""
                 .formatted(players, images);
     }
@@ -189,7 +189,10 @@ class PlayersAndImagesIntegrationTest {
                           "start":{"x":0.1,"y":0.1,"label":null},"end":{"x":0.2,"y":0.2,"label":null},"howTo":"x"}]}"""))
                 .andExpect(status().isNoContent());
         mvc.perform(get("/api/players")).andExpect(jsonPath("$", hasSize(0)));
-        mvc.perform(get("/api/maps/nuke/grenades")).andExpect(jsonPath("$[0].playerIds", hasSize(0)));
+        // ...e granadas de backups antigos (sem lado) viram "both".
+        mvc.perform(get("/api/maps/nuke/grenades"))
+                .andExpect(jsonPath("$[0].playerIds", hasSize(0)))
+                .andExpect(jsonPath("$[0].side").value("both"));
 
         // Backup com referência quebrada é recusado sem apagar nada.
         mvc.perform(post("/api/backup").contentType(MediaType.APPLICATION_JSON).content("""
