@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="0001-create-regions" author="igl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="regions"/>
+            </not>
+        </preConditions>
+        <createTable tableName="regions" remarks="Áreas nomeadas desenhadas sobre o mapa (polígonos)">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" primaryKeyName="pk_regions"/>
+            </column>
+            <column name="map_slug" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="points" type="jsonb" remarks="Lista de {x,y} normalizados (0 a 1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamptz" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamptz" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="regions" indexName="ix_regions_map_slug">
+            <column name="map_slug"/>
+        </createIndex>
+        <rollback>
+            <dropTable tableName="regions"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

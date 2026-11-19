@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="0003-grenades-type-check" author="igl">
+        <sql>
+            alter table grenades
+                add constraint ck_grenades_type check (type in ('smoke', 'molotov', 'flash', 'he'))
+        </sql>
+        <rollback>
+            <sql>alter table grenades drop constraint ck_grenades_type</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0003-grenades-coordinates-check" author="igl">
+        <sql>
+            alter table grenades
+                add constraint ck_grenades_coordinates check (
+                    start_x between 0 and 1 and start_y between 0 and 1
+                    and end_x between 0 and 1 and end_y between 0 and 1
+                )
+        </sql>
+        <rollback>
+            <sql>alter table grenades drop constraint ck_grenades_coordinates</sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

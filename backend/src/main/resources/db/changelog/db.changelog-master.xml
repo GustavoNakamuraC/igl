@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Changesets aplicados em ordem alfabética do nome do arquivo.
+        Nunca edite um changeset já aplicado: crie um novo arquivo (000N-descricao.xml).
+    -->
+    <includeAll path="changes/" relativeToChangelogFile="true"/>
+</databaseChangeLog>

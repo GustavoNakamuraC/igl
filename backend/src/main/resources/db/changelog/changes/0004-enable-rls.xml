@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        No Supabase, tabelas do schema public ficam expostas pela API REST pública (chave anon).
+        Ligar RLS sem nenhuma política bloqueia esse acesso. O backend conecta como dono das
+        tabelas (usuário postgres), que não é afetado pelo RLS.
+    -->
+    <changeSet id="0004-enable-rls" author="igl">
+        <sql>
+            alter table regions enable row level security;
+            alter table grenades enable row level security;
+        </sql>
+        <rollback>
+            <sql>
+                alter table regions disable row level security;
+                alter table grenades disable row level security;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

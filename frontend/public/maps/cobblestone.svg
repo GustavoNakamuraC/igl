@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<!-- Placeholder. Coloque o radar real em public/maps/cobblestone.png -->
+<defs><pattern id="g" width="64" height="64" patternUnits="userSpaceOnUse"><path d="M64 0H0V64" fill="none" stroke="#1c2024" stroke-width="2"/></pattern></defs>
+<rect width="1024" height="1024" fill="#14171a"/><rect width="1024" height="1024" fill="url(#g)"/>
+<rect x="324" y="388" width="264" height="276" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="677" y="122" width="139" height="120" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="213" y="654" width="353" height="272" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="671" y="747" width="142" height="102" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="403" y="294" width="379" height="269" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="453" y="190" width="252" height="272" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="234" y="223" width="356" height="116" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="168" y="693" width="234" height="141" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="571" y="435" width="258" height="117" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/>
+<text x="512" y="540" text-anchor="middle" font-family="system-ui,sans-serif" font-size="96" font-weight="800" fill="#3d444c" letter-spacing="8">COBBLESTONE</text>
+<text x="512" y="600" text-anchor="middle" font-family="system-ui,sans-serif" font-size="28" fill="#3d444c">placeholder · public/maps/cobblestone.png</text>
+</svg>

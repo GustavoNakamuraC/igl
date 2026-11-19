@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<!-- Placeholder. Coloque o radar real em public/maps/ancient.png -->
+<defs><pattern id="g" width="64" height="64" patternUnits="userSpaceOnUse"><path d="M64 0H0V64" fill="none" stroke="#1c2024" stroke-width="2"/></pattern></defs>
+<rect width="1024" height="1024" fill="#14171a"/><rect width="1024" height="1024" fill="url(#g)"/>
+<rect x="637" y="541" width="132" height="191" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="202" y="503" width="350" height="210" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="187" y="267" width="367" height="106" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="576" y="508" width="315" height="80" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="664" y="722" width="231" height="154" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="500" y="220" width="370" height="145" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="408" y="526" width="142" height="231" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="383" y="589" width="334" height="114" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="455" y="499" width="306" height="103" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/>
+<text x="512" y="540" text-anchor="middle" font-family="system-ui,sans-serif" font-size="96" font-weight="800" fill="#3d444c" letter-spacing="8">ANCIENT</text>
+<text x="512" y="600" text-anchor="middle" font-family="system-ui,sans-serif" font-size="28" fill="#3d444c">placeholder · public/maps/ancient.png</text>
+</svg>

@@ -1,0 +1,21 @@
+# Postgres local opcional, para desenvolver sem o Supabase.
+# Uso: docker compose up -d   (e mantenha os valores padrão no backend/.env.local)
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: igl-postgres
+    environment:
+      POSTGRES_DB: igl
+      POSTGRES_USER: igl
+      POSTGRES_PASSWORD: igl
+    ports:
+      - "5432:5432"
+    volumes:
+      - igl-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U igl -d igl"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  igl-pgdata:

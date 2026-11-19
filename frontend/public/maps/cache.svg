@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<!-- Placeholder. Coloque o radar real em public/maps/cache.png -->
+<defs><pattern id="g" width="64" height="64" patternUnits="userSpaceOnUse"><path d="M64 0H0V64" fill="none" stroke="#1c2024" stroke-width="2"/></pattern></defs>
+<rect width="1024" height="1024" fill="#14171a"/><rect width="1024" height="1024" fill="url(#g)"/>
+<rect x="187" y="521" width="307" height="101" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="793" y="243" width="122" height="223" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="204" y="364" width="357" height="143" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="332" y="381" width="373" height="168" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="140" y="634" width="156" height="231" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="96" y="685" width="205" height="156" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="478" y="364" width="285" height="81" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="729" y="171" width="180" height="132" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/><rect x="129" y="181" width="361" height="259" rx="6" fill="#2b3036" stroke="#3a4048" stroke-width="3"/>
+<text x="512" y="540" text-anchor="middle" font-family="system-ui,sans-serif" font-size="96" font-weight="800" fill="#3d444c" letter-spacing="8">CACHE</text>
+<text x="512" y="600" text-anchor="middle" font-family="system-ui,sans-serif" font-size="28" fill="#3d444c">placeholder · public/maps/cache.png</text>
+</svg>
